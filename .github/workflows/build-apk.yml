@@ -1,0 +1,57 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project
+        run: |
+          unzip -o CryptoSignalWidget-v7.zip -d project
+          echo "Project files:"
+          find project -name settings.gradle.kts -print
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Install Android SDK packages
+        run: |
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
+
+      - name: Build APK
+        run: |
+          PROJECT_DIR="$(dirname "$(find "$GITHUB_WORKSPACE/project" -name settings.gradle.kts -print -quit)")"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: settings.gradle.kts not found"
+            exit 1
+          fi
+          echo "Building in $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CryptoSignalWidget-APK
+          path: project/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
