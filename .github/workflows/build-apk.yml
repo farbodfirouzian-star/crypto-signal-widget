@@ -47,8 +47,8 @@ jobs:
           fi
           echo "Building in $PROJECT_DIR"
           cd "$PROJECT_DIR"
-sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g; s/JavaVersion.VERSION_8/JavaVersion.VERSION_17/g' app/build.gradle.kts
-gradle assembleDebug
+          sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g; s/JavaVersion.VERSION_8/JavaVersion.VERSION_17/g' app/build.gradle.kts
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
