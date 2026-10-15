@@ -16,7 +16,20 @@ jobs:
           unzip -o CryptoSignalWidget-v7.zip -d project
           echo "Project files:"
           find project -name settings.gradle.kts -print
+      - name: Force Java 17 target
+        run: |
+          PROJECT_DIR="$(dirname "$(find "$GITHUB_WORKSPACE/project" -name settings.gradle.kts -print -quit)")"
+          APP_FILE="$PROJECT_DIR/app/build.gradle.kts"
 
+          echo "Project directory: $PROJECT_DIR"
+          echo "Before fix:"
+          grep -n -E 'sourceCompatibility|targetCompatibility|jvmTarget' "$APP_FILE" || true
+
+          sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' "$APP_FILE"
+          sed -i 's/jvmTarget = "1.8"/jvmTarget = "17"/g' "$APP_FILE"
+
+          echo "After fix:"
+          grep -n -E 'sourceCompatibility|targetCompatibility|jvmTarget' "$APP_FILE"
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
